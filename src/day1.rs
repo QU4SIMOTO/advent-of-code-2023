@@ -29,6 +29,7 @@ pub mod part2 {
     }
 
     struct Parser<'a>(&'a str);
+
     impl<'a> Iterator for Parser<'a> {
         type Item = &'a str;
 
