@@ -19,6 +19,15 @@ struct Part {
     value: u64,
 }
 
+impl Part {
+    fn is_neighbour(&self, other: &Node) -> bool {
+        self.nodes
+            .iter()
+            .find(|part_node| part_node.is_neighbour(other))
+            .is_some()
+    }
+}
+
 #[derive(Debug, Default)]
 struct SchematicGraph {
     symbols: Vec<Symbol>,
@@ -26,7 +35,10 @@ struct SchematicGraph {
 }
 
 impl SchematicGraph {
-    fn parse(input: &str) -> Self {
+    fn parse<T>(input: &str, include_symbol: T) -> Self
+    where
+        T: Fn(char) -> bool,
+    {
         let mut graph = SchematicGraph::default();
         for (i, line) in input.lines().enumerate() {
             let mut iter = line.chars().enumerate().peekable();
@@ -46,9 +58,10 @@ impl SchematicGraph {
                         let nodes = (j..=end_index).map(|j| Node(i as i64, j as i64)).collect();
                         graph.parts.push(Part { nodes, value });
                     }
-                    _ => graph.symbols.push(Symbol {
+                    c if include_symbol(c) => graph.symbols.push(Symbol {
                         node: Node(i as i64, j as i64),
                     }),
+                    _ => {}
                 }
             }
         }
@@ -56,23 +69,72 @@ impl SchematicGraph {
     }
 }
 
+pub mod part2 {
+    use super::*;
+
+    pub fn solve(input: &str) -> u64 {
+        let schematic = SchematicGraph::parse(input, |c| c == '*');
+        schematic
+            .symbols
+            .iter()
+            .filter_map(|symbol| {
+                let neighbours = schematic
+                    .parts
+                    .iter()
+                    .filter_map(|part| {
+                        if part.is_neighbour(&symbol.node) {
+                            Some(part.value)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                if neighbours.len() == 2 {
+                    Some(neighbours.into_iter().product::<u64>())
+                } else {
+                    None
+                }
+            })
+            .sum()
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        const EXAMPLE_1: &str = "
+            467..114..
+            ...*......
+            ..35..633.
+            ......#...
+            617*......
+            .....+.58.
+            ..592.....
+            ......755.
+            ...$.*....
+            .664.598..";
+
+        #[test]
+        fn solve_example1() {
+            assert_eq!(part2::solve(EXAMPLE_1), 467835);
+        }
+    }
+}
+
 pub mod part1 {
     use super::*;
 
     pub fn solve(input: &str) -> u64 {
-        let schematic = SchematicGraph::parse(input);
+        let schematic = SchematicGraph::parse(input, |_| true);
         schematic
             .parts
             .iter()
             .filter_map(|part| {
-                part.nodes.iter().find(|part_node| {
-                    schematic
-                        .symbols
-                        .iter()
-                        .find(|symbol| part_node.is_neighbour(&symbol.node))
-                        .is_some()
-                })?;
-                Some(part.value)
+                schematic
+                    .symbols
+                    .iter()
+                    .find(|symbol| part.is_neighbour(&symbol.node))
+                    .map(|_| part.value)
             })
             .sum()
     }

@@ -29,7 +29,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             2 => {
                 const DAY_2_PART_1_DATA: &'static str = include_str!("../data/2-1.txt");
-                // 12 red cubes, 13 green cubes, and 14 blue cubes
                 println!("{}", day2::part2::solve(DAY_2_PART_1_DATA,)?);
             }
             _ => unimplemented!(),
@@ -39,7 +38,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 const DAY_3_PART_1_DATA: &'static str = include_str!("../data/3-1.txt");
                 println!("{}", day3::part1::solve(DAY_3_PART_1_DATA,));
             }
-            2 => unimplemented!(),
+            2 => {
+                const DAY_3_PART_1_DATA: &'static str = include_str!("../data/3-1.txt");
+                println!("{}", day3::part2::solve(DAY_3_PART_1_DATA,));
+            }
             _ => unimplemented!(),
         },
         _ => unimplemented!(),
