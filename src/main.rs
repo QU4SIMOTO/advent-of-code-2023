@@ -34,6 +34,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             _ => unimplemented!(),
         },
+        3 => match args.part {
+            1 => {
+                const DAY_3_PART_1_DATA: &'static str = include_str!("../data/3-1.txt");
+                println!("{}", day3::part1::solve(DAY_3_PART_1_DATA,));
+            }
+            2 => unimplemented!(),
+            _ => unimplemented!(),
+        },
         _ => unimplemented!(),
     }
     Ok(())
