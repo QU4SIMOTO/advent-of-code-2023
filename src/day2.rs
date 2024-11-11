@@ -14,16 +14,28 @@ impl Round {
             let (count, colour) = curr
                 .trim()
                 .split_once(" ")
-                .ok_or("count must contain colour and number")?;
+                .ok_or("must contain colour and number separated by space")?;
             let count = count.trim().parse::<u64>()?;
             match colour.trim() {
                 "red" => acc.r += count,
                 "green" => acc.g += count,
                 "blue" => acc.b += count,
-                other => return Err(format!("invalid colour {other}").into()),
+                other => return Err(format!("invalid colour: {other}").into()),
             };
             Ok(acc)
         })
+    }
+
+    fn max(&self, other: Self) -> Self {
+        Self {
+            r: self.r.max(other.r),
+            g: self.g.max(other.g),
+            b: self.b.max(other.b),
+        }
+    }
+
+    fn power_of_cubes(&self) -> u64 {
+        self.r * self.g * self.b
     }
 }
 
@@ -70,24 +82,62 @@ impl<'a> Game<'a> {
             rest: self.rounds_data,
         }
     }
+
+    fn minium_cubes(&self) -> Result<Round, Box<dyn std::error::Error>> {
+        self.rounds()
+            .fold(Ok(Round::default()), |min_round, round| {
+                Ok(min_round?.max(round?))
+            })
+    }
 }
 
-fn are_rounds_valid<T>(rule: T, rounds: Rounds) -> Result<bool, Box<dyn std::error::Error>>
-where
-    T: Fn(Round) -> bool,
-{
-    rounds.fold(Ok(true), |acc, round| {
-        let round = round?;
-        if !rule(round) {
-            Ok(false)
-        } else {
-            acc
+pub mod part2 {
+    use super::*;
+
+    pub fn solve(input: &str) -> Result<u64, Box<dyn std::error::Error>> {
+        input.lines().fold(Ok(0), |acc, game| {
+            acc.and_then(|acc| {
+                Game::parse(game)
+                    .minium_cubes()
+                    .and_then(|round| Ok(round.power_of_cubes() + acc))
+            })
+        })
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        const EXAMPLE_1: &str = "\
+                                 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+                                 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+                                 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+                                 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+                                 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green\
+                                 ";
+        #[test]
+        fn solve_example_1() {
+            assert_eq!(part2::solve(EXAMPLE_1).unwrap(), 2286);
         }
-    })
+    }
 }
 
 pub mod part1 {
     use super::*;
+
+    fn are_rounds_valid<T>(rule: T, rounds: Rounds) -> Result<bool, Box<dyn std::error::Error>>
+    where
+        T: Fn(Round) -> bool,
+    {
+        rounds.fold(Ok(true), |acc, round| {
+            let round = round?;
+            if !rule(round) {
+                Ok(false)
+            } else {
+                acc
+            }
+        })
+    }
 
     pub fn solve(
         red: u64,
