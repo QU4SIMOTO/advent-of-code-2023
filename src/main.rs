@@ -49,7 +49,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 const DAY_4_PART_1_DATA: &'static str = include_str!("../data/4-1.txt");
                 println!("{}", day4::part1::solve(DAY_4_PART_1_DATA)?);
             }
-            2 => unimplemented!(),
+            2 => {
+                const DAY_4_PART_2_DATA: &'static str = include_str!("../data/4-1.txt");
+                println!("{}", day4::part2::solve(DAY_4_PART_2_DATA)?);
+            }
             _ => unimplemented!(),
         },
         _ => unimplemented!(),
